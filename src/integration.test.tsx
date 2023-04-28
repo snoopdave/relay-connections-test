@@ -36,7 +36,7 @@ describe('Testing GraphQL server with Relay-Connections', () => {
                 fetchPolicy={'store-and-network'}
                 cacheConfig={{force: true}}
 
-                render={({error, props, _}) => {
+                render={({error, props}) => {
                     if (error) {
                         return <div>{error.message}</div>;
                     }
