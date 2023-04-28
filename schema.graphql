@@ -1,0 +1,30 @@
+schema {
+    query: Query
+}
+
+type Query {
+    getUsers(first: Int, after: String, last: Int, before: String): UserConnection
+}
+
+type User {
+    id: ID!
+    name: String!
+    email: String!
+}
+
+type UserConnection {
+    pageInfo: PageInfo!
+    edges: [UserEdge]
+}
+
+type UserEdge {
+    cursor: String!
+    node: User
+}
+
+type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
+}
