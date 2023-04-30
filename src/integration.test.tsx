@@ -5,14 +5,47 @@ import {GET_USERS_QUERY} from './getUsers';
 import {getUsersQuery, getUsersQuery$data} from './__generated__/getUsersQuery.graphql';
 import React from 'react';
 import {renderToString} from "react-dom/server";
+import {join} from "path";
+import {readFileSync} from "fs";
+import {ApolloServer} from "@apollo/server";
+import {resolvers} from "./resolvers";
+import {startStandaloneServer} from "@apollo/server/standalone";
 
-const apolloServerUrl = 'http://localhost:5001';
+let apolloServer: ApolloServer | null = null;
+let apolloServerUrl: string | null = null;
 
 describe('Testing GraphQL server with Relay-Connections', () => {
 
+    async function startServer() {
+
+        interface MyContext {}
+
+        let apolloServerUrl: string = '';
+        const schemaPath = join(__dirname, '..', 'schema.graphql');
+        const typeDefs = readFileSync(schemaPath, { encoding: 'utf-8' });
+        apolloServer = new ApolloServer<MyContext>({
+            typeDefs,
+            resolvers,
+        });
+        const { url } = await startStandaloneServer(apolloServer, {
+            listen: { port: 5001 }
+        });
+        console.log(`🚀  Server ready at ${url}`);
+        apolloServerUrl = url;
+    }
+
+    async function stopServer() {
+        await apolloServer?.stop();
+    }
+
     test('Check if all 100 users are retrieved', async () => {
-        const props = await renderTestComponent({first: 100});
-        expect(props.getUsers.edges.length).toBe(100);
+        await startServer();
+        try {
+            const props = await renderTestComponent({first: 100});
+            expect(props.getUsers.edges.length).toBe(100);
+        } finally {
+            await stopServer();
+        }
     });
 
     // test('Check if default 10 users are retrieved', async () => {
@@ -33,7 +66,7 @@ describe('Testing GraphQL server with Relay-Connections', () => {
                 environment={environment}
                 query={GET_USERS_QUERY}
                 variables={{first, after, last, before}}
-                fetchPolicy={'store-and-network'}
+                fetchPolicy={'network-only'}
                 cacheConfig={{force: true}}
 
                 render={({error, props}) => {
@@ -62,7 +95,7 @@ describe('Testing GraphQL server with Relay-Connections', () => {
         operation: any,
         variables: Record<string, any>,
     ): Promise<any> {
-        const response = await fetch(apolloServerUrl, {
+        const response = await fetch(apolloServerUrl!, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
