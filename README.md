@@ -2,6 +2,8 @@
 
 Example project that shows how to test that a GraphQL API conforms to the Relay Connection pagination/cursor spec.
 
+Currently a work in progress!
+
 This project was generated almost entirely with ChatGPT 4. This is the prompt that I used to start the project:
 
 I want to create a Typescript project that is a example of how to test a GraphQL server and verify that the server supports the Relay-Connections specification here: https://relay.dev/graphql/connections.htm
